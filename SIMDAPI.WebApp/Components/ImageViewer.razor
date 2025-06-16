@@ -1,0 +1,62 @@
+﻿@using SIMDAPI.WebApp.Services  
+@inject ImageService ImageService  
+@inject Shared.AppState AppState  
+@implements IDisposable  
+
+@if (!string.IsNullOrEmpty(Base64Image))  
+{  
+    <img src="data:image/png;base64,@Base64Image" alt="Bildvorschau" style="max-width:100%; border:1px solid #ccc;" />  
+}  
+else if (IsLoading)  
+{  
+    <p>Lade Bild ...</p>  
+}  
+else  
+{  
+    <p>Kein Bild verfügbar.</p>  
+}  
+
+@code {  
+    private string? Base64Image;  
+    private bool IsLoading = false;  
+
+    protected override async Task OnInitializedAsync()  
+    {  
+        AppState.OnImageChanged += async () => await LoadImage();  
+        await LoadImage();  
+    }  
+
+    private async Task LoadImage()  
+    {  
+        if (AppState.CurrentImageId == null)  
+            return;  
+
+        IsLoading = true;  
+        Base64Image = await ImageService.DownloadImageBase64Async(AppState.CurrentImageId.Value);  
+        IsLoading = false;  
+    }  
+
+    public void Dispose()  
+    {  
+        AppState.OnImageChanged -= async () => await LoadImage();  
+    }  
+
+
+    private async Task DownloadImage()
+    {
+        var bytes = Convert.FromBase64String(Base64Image!);
+        var base64 = Convert.ToBase64String(bytes);
+        var filename = $"kernel_output_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+
+        await JS.InvokeVoidAsync("downloadBase64", $"data:image/png;base64,{base64}", filename);
+    }
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+}
+
+@if (!string.IsNullOrEmpty(Base64Image))
+{
+    <a @onclick="DownloadImage" class="btn btn-outline-success mt-2">⬇️ Bild speichern</a>
+}
+

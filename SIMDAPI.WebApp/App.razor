@@ -1,0 +1,47 @@
+﻿@using SIMDAPI.WebApp.Components
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@inject Shared.AppState AppState
+
+@inject IJSRuntime JSRuntime  
+
+@code {  
+    protected override void OnInitialized()  
+    {  
+        AppState.OnThemeChanged += ApplyTheme;  
+        ApplyTheme();  
+    }  
+
+    private void ApplyTheme()  
+    {  
+        var jsRuntime = (IJSInProcessRuntime)JSRuntime;  
+        jsRuntime.InvokeVoid("eval", $"document.body.classList.toggle('dark', {AppState.IsDarkMode.ToString().ToLower()})");  
+    }  
+}
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" />
+        </Found>
+        <NotFound>
+            <p>Seite nicht gefunden.</p>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+
+
+
+<ToastHost />
+
+

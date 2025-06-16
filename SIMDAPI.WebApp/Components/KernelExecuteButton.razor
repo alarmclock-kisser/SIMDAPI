@@ -1,0 +1,51 @@
+﻿@using SIMDAPI.WebApp.Services
+@inject ImageService ImageService
+@inject Shared.AppState AppState
+
+<button @onclick="ExecuteKernel" class="btn btn-primary" disabled="@IsProcessing">
+    @(!IsProcessing ? "Kernel ausführen" : "Verarbeite ...")
+</button>
+
+<input type="number" step="0.01" @bind="Zoom" class="form-control" placeholder="Zoom" />
+<input type="color" @bind="HexColor" class="form-control" />
+
+
+@if (!string.IsNullOrEmpty(Status))
+{
+    <p>@Status</p>
+}
+
+@code {
+    private bool IsProcessing = false;
+    private string? Status;
+
+    private double Zoom = 1.1;
+    private string HexColor = "#000000";
+
+
+    private async Task ExecuteKernel()
+    {
+        if (AppState.CurrentImageId == null)
+        {
+            Status = "Kein Bild ausgewählt.";
+            return;
+        }
+
+        IsProcessing = true;
+        Status = "Kernel wird ausgeführt ...";
+
+        bool success = await ImageService.ExecuteMandelbrotKernelAsync(AppState.CurrentImageId.Value, Zoom, HexColor);
+
+        IsProcessing = false;
+
+        if (success)
+        {
+            Status = "Kernel erfolgreich ausgeführt.";
+            AppState.NotifyImageChanged();
+        }
+        else
+        {
+            Status = "Fehler bei der Kernel-Ausführung.";
+        }
+    }
+}

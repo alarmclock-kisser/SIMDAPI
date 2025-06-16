@@ -1,0 +1,45 @@
+﻿@page "/"
+
+@page "/imagetool"
+@using SIMDAPI.WebApp.Components
+@inject Shared.AppState AppState
+
+<div class="container mt-4">
+
+    <div class="card shadow p-4 mb-4">
+        <h4 class="mb-3">📤 Bild hochladen</h4>
+        <UploadComponent />
+    </div>
+
+    @if (AppState.CurrentImageId != null)
+    {
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card shadow p-3">
+                    <h5 class="mb-2">🖼 Vorschau</h5>
+                    <ImageViewer />
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow p-3">
+                    <h5 class="mb-2">⚙️ Kernel Optionen</h5>
+                    <KernelExecuteButton />
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mt-4">
+            Bitte ein Bild hochladen, um zu starten.
+        </div>
+    }
+
+</div>
+
+
+
+<hr />
+<h5>📄 Console Log</h5>
+<ConsoleLog />

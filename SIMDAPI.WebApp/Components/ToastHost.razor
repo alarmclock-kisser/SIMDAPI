@@ -1,0 +1,39 @@
+﻿@inject Shared.AppState AppState
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+    @foreach (var toast in Toasts)
+    {
+        <div class="toast show align-items-center text-bg-success border-0 mb-2" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">@toast</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" @onclick="() => RemoveToast(toast)" />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<string> Toasts = [];
+
+    protected override void OnInitialized()
+    {
+        AppState.OnToast += ShowToast;
+    }
+
+    private void ShowToast(string message)
+    {
+        Toasts.Add(message);
+        StateHasChanged();
+
+        _ = Task.Delay(3000).ContinueWith(_ =>
+        {
+            Toasts.Remove(message);
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private void RemoveToast(string message)
+    {
+        Toasts.Remove(message);
+    }
+}

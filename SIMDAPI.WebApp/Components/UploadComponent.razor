@@ -1,0 +1,43 @@
+﻿@using SIMDAPI.WebApp.Services  
+@inject ImageService ImageService  
+@inject Shared.AppState AppState  
+
+<input type="file" @onchange="HandleFileSelectedAsync" />  
+
+@if (!string.IsNullOrEmpty(Status))  
+{  
+    <p>@Status</p>  
+}  
+
+@code {  
+    private string? Status;  
+
+    private async Task HandleFileSelectedAsync(ChangeEventArgs e)  
+    {  
+        var inputFile = e.Value as Microsoft.AspNetCore.Components.Forms.IBrowserFile;  
+        if (inputFile == null)  
+        {  
+            Status = "Kein Bild ausgewählt.";  
+            return;  
+        }  
+
+        try  
+        {  
+            using var stream = inputFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);  
+            string? imageId = await ImageService.UploadImageAsync(stream, inputFile.Name);  
+
+            if (imageId == null)  
+            {  
+                Status = "Upload fehlgeschlagen.";  
+                return;  
+            }  
+
+            AppState.CurrentImageId = Guid.Parse(imageId);  
+            Status = $"Bild erfolgreich hochgeladen. ID: {imageId}";  
+        }  
+        catch (Exception ex)  
+        {  
+            Status = $"Fehler: {ex.Message}";  
+        }  
+    }  
+}
