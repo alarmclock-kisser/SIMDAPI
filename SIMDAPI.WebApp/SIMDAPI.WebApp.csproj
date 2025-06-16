@@ -13,6 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SIMDAPI.OpenCL\SIMDAPI.OpenCL.csproj" />
+    <ProjectReference Include="..\SIMDAPI.Vulkan\SIMDAPI.Vulkan.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 

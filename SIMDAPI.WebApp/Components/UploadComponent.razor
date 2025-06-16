@@ -1,43 +1,48 @@
-﻿@using SIMDAPI.WebApp.Services  
-@inject ImageService ImageService  
-@inject Shared.AppState AppState  
+﻿@using SIMDAPI.WebApp.Services
+@inject ImageService ImageService
+@inject Shared.AppState AppState
 
-<input type="file" @onchange="HandleFileSelectedAsync" />  
+<InputFile OnChange="HandleFileSelectedAsync" />
 
-@if (!string.IsNullOrEmpty(Status))  
-{  
-    <p>@Status</p>  
-}  
+@if (!string.IsNullOrEmpty(Status))
+{
+    <p>@Status</p>
+}
 
-@code {  
-    private string? Status;  
+@code {
+    private string? Status;
 
-    private async Task HandleFileSelectedAsync(ChangeEventArgs e)  
-    {  
-        var inputFile = e.Value as Microsoft.AspNetCore.Components.Forms.IBrowserFile;  
-        if (inputFile == null)  
-        {  
-            Status = "Kein Bild ausgewählt.";  
-            return;  
-        }  
+    private async Task HandleFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            Status = "Kein Bild ausgewählt.";
+            AppState.Log("Kein Bild ausgewählt.");
+            return;
+        }
 
-        try  
-        {  
-            using var stream = inputFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);  
-            string? imageId = await ImageService.UploadImageAsync(stream, inputFile.Name);  
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            string? imageId = await ImageService.UploadImageAsync(stream, file.Name);
 
-            if (imageId == null)  
-            {  
-                Status = "Upload fehlgeschlagen.";  
-                return;  
-            }  
+            if (imageId == null)
+            {
+                Status = "Upload fehlgeschlagen.";
+                AppState.Log("Upload fehlgeschlagen.");
+                return;
+            }
 
-            AppState.CurrentImageId = Guid.Parse(imageId);  
-            Status = $"Bild erfolgreich hochgeladen. ID: {imageId}";  
-        }  
-        catch (Exception ex)  
-        {  
-            Status = $"Fehler: {ex.Message}";  
-        }  
-    }  
+            AppState.CurrentImageId = Guid.Parse(imageId);
+            Status = $"Bild erfolgreich hochgeladen. ID: {imageId}";
+            AppState.Toast($"✅ Bild hochgeladen (ID: {imageId})");
+            AppState.Log($"Bild-ID gesetzt: {imageId}");
+        }
+        catch (Exception ex)
+        {
+            Status = $"Fehler: {ex.Message}";
+            AppState.Log($"Upload-Fehler: {ex.Message}");
+        }
+    }
 }

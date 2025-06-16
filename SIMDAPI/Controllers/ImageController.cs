@@ -19,15 +19,18 @@ namespace SIMDAPI.Controllers
 		{
 			this.ImgC = imgC;
 			this.Logger = logger;
+
+			Console.WriteLine("### ImageController initialisiert");
+
 		}
 
 		[HttpPost("upload")]
 		[Consumes("multipart/form-data")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		[RequestSizeLimit(32 * 1024 * 1024)]
 		public async Task<IActionResult> UploadImage(IFormFile file)
 		{
+			this.Logger.LogInformation("UploadImage: Empfange Datei {Name}, Größe {Size} Bytes", file.FileName, file.Length);
+
 			if (file == null || file.Length == 0)
 			{
 				return this.BadRequest("No file uploaded.");
@@ -40,10 +43,9 @@ namespace SIMDAPI.Controllers
 			using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(memoryStream);
 			if (image == null)
 			{
-				this.Logger.LogWarning("UploadImage: Failed to load image from uploaded file.");
-				return this.BadRequest("Ungültiges Bildformat oder leere Datei.");
+				this.Logger.LogWarning("UploadImage: Failed to load image.");
+				return this.BadRequest("Invalid image format.");
 			}
-
 
 			var bytesPerPixel = image.PixelType.BitsPerPixel / 8;
 			var rawPixelData = new byte[image.Width * image.Height * bytesPerPixel];
@@ -51,16 +53,21 @@ namespace SIMDAPI.Controllers
 
 			var imgObj = new ImgObj(rawPixelData, image.Width, image.Height, file.FileName);
 
-			if (this.ImgC.Add(imgObj)) // Use the thread-safe Add method
+			if (this.ImgC.Add(imgObj))
 			{
-				this.Logger.LogInformation("UploadImage: Successfully uploaded and added image '{Name}' (ID: {Id}).", imgObj.Name, imgObj.Id);
-				return this.Ok(new { imgObj.Id, imgObj.Name, imgObj.Width, imgObj.Height, imgObj.Channels, imgObj.Bitdepth });
+				this.Logger.LogInformation("UploadImage: Added image {Name} (ID: {Id})", imgObj.Name, imgObj.Id);
+				return this.Ok(new
+				{
+					imgObj.Id,
+					imgObj.Name,
+					imgObj.Width,
+					imgObj.Height,
+					imgObj.Channels,
+					imgObj.Bitdepth
+				});
 			}
-			else
-			{
-				this.Logger.LogWarning("UploadImage: Failed to add image '{Name}' (ID: {Id}). An image with this ID might already exist.", imgObj.Name, imgObj.Id);
-				return this.BadRequest("Ein Bild mit dieser ID existiert bereits.");
-			}
+
+			return this.BadRequest("Image already exists.");
 		}
 
 

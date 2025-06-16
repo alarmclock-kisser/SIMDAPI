@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Full (API + WebApp)",
+    "Projects": [
+      {
+        "Path": "SIMDAPI\\SIMDAPI.API.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SIMDAPI.WebApp\\SIMDAPI.WebApp.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
